@@ -61,7 +61,7 @@ def ca_cfar_2d(power_map,
     return detections, threshold
 
 
-def cfar_on_cube(data_cube,
+def ca_cfar_on_cube(data_cube,
                  guard_range=2, guard_az=2,
                  train_range=8, train_az=8,
                  pfa=1e-5):
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
     print(cube[0])
 
-    det, thr = cfar_on_cube(cube,
+    det, thr = ca_cfar_on_cube(cube,
                             guard_range=2, guard_az=2,
                             train_range=4, train_az=4,
                             pfa=1e-4)

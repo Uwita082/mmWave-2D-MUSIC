@@ -224,8 +224,28 @@ from utils.config import RAW_ADC_PATH, ADC_SAMPLES, N_CHIRPS_LOOPS, RX_CHANNELS,
 adc_data = parse_mmwave_studio_adc(RAW_ADC_PATH, ADC_SAMPLES, N_CHIRPS_LOOPS, RX_CHANNELS, tx=2, num_frames=N_FRAMES)
 
 p = PointCloud1DMUSIC()
-p.run(adc_data, static_removal=True, phase_shift=True)
+p.run(
+    adc_data,
+    static_removal=True,
+    phase_shift=True,
+    mask_zero_doppler=True,
+    num_targets=1,
+    peak_group_neighborhood=0,
+    range_max=None,
+)
 ```
+
+**`static_removal`**: subtracts the intra-frame chirp mean to cancel stationary clutter (walls, furniture). Disable when you want to detect static targets such as a stationary person.
+
+**`phase_shift`**: applies the TDM-MIMO Doppler phase correction before MUSIC. Should be enabled whenever targets are moving, otherwise a moving target will appear at a shifted azimuth angle.
+
+**`mask_zero_doppler`**: suppresses the three central Doppler bins (zero-velocity line and its immediate neighbours) in the CFAR detection mask after clutter removal. Enable when targets of interest are moving and any residual static energy in the zero-Doppler bin would otherwise cause false detections.
+
+**`num_targets`**: estimated number of simultaneous signal sources present in any single range-Doppler cell. Passed directly to MUSIC as K. Must be strictly less than the spatial smoothing sub-array length L (default L=4); increase L inside `music_per_cell` if more sources are expected.
+
+**`peak_group_neighborhood`**: neighbourhood radius (in bins) for post-CFAR peak grouping. When set to a value greater than zero, each cluster of adjacent detections is reduced to a single representative cell at the local power maximum. Set to 0 (default) to retain all individual CFAR detections, which provides more snapshots per target for MUSIC.
+
+**`range_max`**: maximum range of interest in metres. If provided and shorter than the full unambiguous range, the range-FFT output is cropped to the corresponding number of bins before any further processing. Set to `None` (default) to process all range bins.
 
 ### 4. Run azimuth + elevation point cloud (3 TX)
 
@@ -237,12 +257,28 @@ from utils.config import RAW_ADC_PATH, ADC_SAMPLES, N_CHIRPS_LOOPS, RX_CHANNELS,
 adc_data = parse_mmwave_studio_adc(RAW_ADC_PATH, ADC_SAMPLES, N_CHIRPS_LOOPS, RX_CHANNELS, tx=3, num_frames=N_FRAMES)
 
 p = PointCloud2DMUSIC()
-p.run(adc_data, static_removal=True, phase_shift=True)
+p.run(
+    adc_data,
+    static_removal=False,
+    phase_shift=True,
+    mask_zero_doppler=False,
+    num_targets=4,
+    peak_group_neighborhood=3,
+    range_max=4.0,
+)
 ```
 
-**`static_removal`**: subtracts the mean across chirps to cancel stationary clutter (walls, furniture). Disable when you want to detect static targets such as a stationary person.
+**`static_removal`**: subtracts the intra-frame chirp mean to cancel stationary clutter (walls, furniture). Disable when you want to detect static targets such as a stationary person.
 
-**`phase_shift`**: applies the TDM-MIMO Doppler phase correction before MUSIC. Should be enabled whenever targets are moving.
+**`phase_shift`**: applies the TDM-MIMO Doppler phase correction before MUSIC. Should be enabled whenever targets are moving, otherwise a moving target will appear at a shifted azimuth angle.
+
+**`mask_zero_doppler`**: suppresses the three central Doppler bins (zero-velocity line and its immediate neighbours) in the CFAR detection mask after clutter removal. Enable when targets of interest are moving and any residual static energy in the zero-Doppler bin would otherwise cause false detections.
+
+**`num_targets`**: estimated number of simultaneous signal sources present in any single range-Doppler cell. Passed directly to MUSIC as K. Must be strictly less than the spatial smoothing sub-array length L (default L=7); increase L inside `music_per_cell` if more sources are expected.
+
+**`peak_group_neighborhood`**: neighbourhood radius (in bins) for post-CFAR peak grouping. When set to a value greater than zero, each cluster of adjacent detections is reduced to a single representative cell at the local power maximum. Set to 0 to retain all individual CFAR detections, which provides more snapshots per target for MUSIC.
+
+**`range_max`**: maximum range of interest in metres. If provided and shorter than the full unambiguous range, the range-FFT output is cropped to the corresponding number of bins before any further processing. Set to `None` to process all range bins.
 
 ---
 

@@ -308,6 +308,8 @@ Python **3.12** is required.
 scipy==1.18.0
 numpy==2.5.0
 plotly==6.8.0
+matplotlib==3.11.0
+openradar==1.0.1
 ```
 
 Install with:
